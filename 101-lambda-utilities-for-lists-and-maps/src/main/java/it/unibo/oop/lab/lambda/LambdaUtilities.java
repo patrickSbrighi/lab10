@@ -1,7 +1,9 @@
 package it.unibo.oop.lab.lambda;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,10 +60,11 @@ public final class LambdaUtilities {
      *         otherwise.
      */
     public static <T> List<Optional<T>> optFilter(final List<T> list, final Predicate<T> pre) {
-        /*
-         * Suggestion: consider Optional.filter
-         */
-        return null;
+        final List<Optional<T>> toRet = new ArrayList<>();
+        list.forEach(e ->{
+            toRet.add(Optional.of(e).filter(pre));
+        });
+        return toRet;
     }
 
     /**
@@ -77,10 +80,12 @@ public final class LambdaUtilities {
      *         based on the mapping done by the function
      */
     public static <R, T> Map<R, Set<T>> group(final List<T> list, final Function<T, R> op) {
-        /*
-         * Suggestion: consider Map.merge
-         */
-        return null;
+        final Map<R, Set<T>> toRet = new HashMap<>();
+        list.forEach(e -> toRet.merge(op.apply(e), new HashSet<>(Arrays.asList(e)), (e1,e2) -> {
+            e1.addAll(e2);
+            return e1;
+        }));
+        return toRet;
     }
 
     /**
@@ -101,7 +106,9 @@ public final class LambdaUtilities {
          *
          * Keep in mind that a map can be iterated through its forEach method
          */
-        return null;
+        final Map<K, V> toRet = new HashMap<>();
+        map.forEach((k, v) -> toRet.put(k, v.orElse(def.get())));
+        return toRet;
     }
 
     /**
