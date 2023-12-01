@@ -1,16 +1,20 @@
 package it.unibo.mvc;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  */
 public final class DrawNumberApp implements DrawNumberViewObserver {
-    private static final int MIN = 0;
-    private static final int MAX = 100;
-    private static final int ATTEMPTS = 10;
+    private static final String FILE_NAME = "config.yml";
 
+    private int min;
+    private int max;
+    private int attemps;
     private final DrawNumber model;
     private final List<DrawNumberView> views;
 
@@ -27,7 +31,14 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
             view.setObserver(this);
             view.start();
         }
-        this.model = new DrawNumberImpl(MIN, MAX, ATTEMPTS);
+        try{
+            readFile();
+        } catch(Exception ex){
+            for (final DrawNumberView view: views) {
+                view.displayError(ex.getMessage());
+            }
+        }
+        this.model = new DrawNumberImpl(this.min, this.max, this.attemps);
     }
 
     @Override
@@ -60,13 +71,38 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
         System.exit(0);
     }
 
+    private void readFile() throws IOException{
+        try(final BufferedReader bf = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(FILE_NAME)))){
+            String line = null;
+            while(( line = bf.readLine()) != null){
+                String[] splitted = line.split(":");
+                switch(splitted[0]){
+                    case "minimum":
+                        this.min = Integer.parseInt(splitted[1].trim());
+                        break;
+                    case "maximum":
+                        this.max = Integer.parseInt(splitted[1].trim());
+                        break;
+                    case "attempts":
+                        this.attemps = Integer.parseInt(splitted[1].trim());
+                        break;
+                }
+            }
+        } catch(IOException ex){
+            throw ex;
+        }
+    }
+
     /**
      * @param args
      *            ignored
      * @throws FileNotFoundException 
      */
     public static void main(final String... args) throws FileNotFoundException {
-        new DrawNumberApp(new DrawNumberViewImpl());
+        new DrawNumberApp(new DrawNumberViewImpl(), 
+            new DrawNumberViewImpl(), 
+            new PrintStreamView("new.log"), 
+            new PrintStreamView(System.out));
     }
 
 }
